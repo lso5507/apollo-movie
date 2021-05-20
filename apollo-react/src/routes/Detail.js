@@ -2,7 +2,10 @@ import { useParams } from "react-router-dom";
 import { gql } from "apollo-boost";
 import { useQuery } from "@apollo/react-hooks";
 import styled from "styled-components";
-
+const LANGUAGE={
+  en:"ENGLISH",
+  ja:"JAPAN"
+}
 const GET_MOVIE = gql`
   query getMovie($id: Int!) {
     movie(id: $id) {
@@ -41,27 +44,33 @@ const Subtitle = styled.h4`
 
 const Description = styled.p`
   font-size: 28px;
+  width:50vw;
 `;
 
 const Poster = styled.div`
   width: 25%;
   height: 60%;
   background-color: transparent;
+  background-image: url(${props => props.bg});
+  background-size: cover;
+  background-position: center center;
 `;
 
 export default () => {
   const { id } = useParams();
+  
   const { loading, data } = useQuery(GET_MOVIE, {
-    variables: { id }
+    variables: {id:+id}
   });
+  
   return (
     <Container>
       <Column>
-        <Title>Name</Title>
-        <Subtitle>English · 4.5</Subtitle>
-        <Description>lorem ipsum lalalla </Description>
+        <Title>{loading ? "Loading...." : data.movie.title}</Title>
+        <Subtitle>{loading ? "" :`${LANGUAGE[data.movie.language]?LANGUAGE[data.movie.language]:data.movie.language}·${data.movie.rating}`}</Subtitle>
+        <Description>{loading?"":data.movie.description_intro} </Description>
       </Column>
-      <Poster></Poster>
+      <Poster bg={data?data.movie.medium_cover_image:""}></Poster>
     </Container>
   );
 };
