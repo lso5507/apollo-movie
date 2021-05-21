@@ -1,7 +1,9 @@
-import { useParams } from "react-router-dom";
+import { useParams,Link } from "react-router-dom";
 import { gql } from "apollo-boost";
 import { useQuery } from "@apollo/react-hooks";
 import styled from "styled-components";
+import Movie from "../components/Movie"
+
 const LANGUAGE={
   en:"ENGLISH",
   ja:"JAPAN"
@@ -14,6 +16,12 @@ const GET_MOVIE = gql`
       language
       rating
       description_intro
+    }
+    suggestions(id: $id){
+      id
+      title
+      medium_cover_image
+      rating
     }
   }
 `;
@@ -56,6 +64,43 @@ const Poster = styled.div`
   background-position: center center;
 `;
 
+const Suggestions = styled.div`
+  display:flex
+  align-item:center
+  margin-right:10px
+  width:10vw
+  height:20vh
+`
+const MiniPoster = styled.div`
+width: 100vw;
+height: 60%;
+background-color: transparent;
+background-image: url(${props => props.bg});
+background-size: cover;
+background-position: center center;
+`
+const MiniRating = styled.p`
+width:100%
+height:20%
+
+`
+const MiniContainer = styled.div`
+width:100%;
+height:100%;
+margin-right:10px
+`
+function Item(m){
+  console.log(m)
+  return(
+    <MiniContainer>
+      <Link to={`${m.id}`}>
+        <MiniPoster bg={m.medium_cover_image}/>
+        <MiniRating>{m.rating}</MiniRating>
+      </Link>
+    </MiniContainer>
+    
+  )
+}
 export default () => {
   const { id } = useParams();
   
@@ -63,14 +108,29 @@ export default () => {
     variables: {id:+id}
   });
   
+console.log(data)
   return (
     <Container>
       <Column>
-        <Title>{loading ? "Loading...." : data.movie.title}</Title>
-        <Subtitle>{loading ? "" :`${LANGUAGE[data.movie.language]?LANGUAGE[data.movie.language]:data.movie.language}·${data.movie.rating}`}</Subtitle>
-        <Description>{loading?"":data.movie.description_intro} </Description>
+        <Title>{loading ? "Loading...." : data?.movie?.title}</Title>
+        <Subtitle>{LANGUAGE[data?.movie?.language]}·{data?.movie?.rating}</Subtitle>
+        <Description>{data?.movie?.description_intro} </Description>
+        <Suggestions>
+        {data?.suggestions?.map(m=>{
+             <Movie
+             key={m.id}
+             id={m.id}
+ 
+             bg={m.medium_cover_image}
+           />
+          
+        })}
+
+
+        </Suggestions>
       </Column>
-      <Poster bg={data?data.movie.medium_cover_image:""}></Poster>
+      <Poster bg={data?.movie?.medium_cover_image}></Poster>
+
     </Container>
   );
 };
